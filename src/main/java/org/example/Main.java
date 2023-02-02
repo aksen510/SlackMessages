@@ -1,47 +1,26 @@
 package org.example;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.slack.api.Slack;
-import com.slack.api.bolt.App;
-import com.slack.api.bolt.jetty.SlackAppServer;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 import com.slack.api.model.Message;
-import com.slack.api.model.block.LayoutBlock;
-import com.slack.api.webhook.Payload;
-import com.slack.api.webhook.WebhookResponse;
-import jdk.nashorn.internal.parser.JSONParser;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.internal.http.HttpHeaders;
-import org.eclipse.jetty.http.HttpMethod;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.slack.api.model.block.Blocks.*;
-import static com.slack.api.model.block.composition.BlockCompositions.markdownText;
-import static com.slack.api.model.block.composition.BlockCompositions.plainText;
-import static com.slack.api.model.block.element.BlockElements.*;
 
 @Slf4j
 public class Main {
 
     private static final String Token = "xoxb-1376359396183-4541956097106-IXi4bjYNVz6A8czFOYjPfkD0";
     private static Slack slack = Slack.getInstance();
-    private static String userInfo = "es-kbsys38@hybecorp.com";
-    private static String chatID;                  // 임시 채널 ID: C04FHJY8D63
+    private static String userInfo = "C04FHJY8D63";     // 임시 이메일 : "es-kbsys38@hybecorp.com"
+    private static String chatID = "C04FHJY8D63";                  // 임시 채널 ID: C04FHJY8D63
 
     public static void main(String[] args) {
 
@@ -53,6 +32,8 @@ public class Main {
             else {
                 System.out.println("채널 아이디 또는 이메일 입력 필요");
             }
+
+            getChannelName();
 
             ChatPostMessageResponse response;
             response = slack.methods(Token).chatPostMessage(req -> req
@@ -158,6 +139,51 @@ public class Main {
         System.out.println(chatID);
         return chatID;
 
+    }
+
+    public static String getChannelName() {
+        String url = "https://slack.com/api/conversations.info";
+        url += "?channel=" + chatID;
+
+        URL url2 = null;
+        HttpURLConnection con= null;
+        JsonObject result = new JsonObject();
+        StringBuilder sb = new StringBuilder();
+
+        try {
+            url2 = new URL(url);
+            con = (HttpURLConnection) url2.openConnection();
+
+            con.setRequestMethod("GET");
+
+            con.setRequestProperty("Authorization", "Bearer " + Token);
+            con.setRequestProperty("Content-type", "application/x-www-form-urlencoded");
+
+            con.setDoOutput(true);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+            while(br.ready()) {
+                sb.append(br.readLine());
+            }
+            con.disconnect();
+            System.out.println("채널명 API호출 성공 : " + sb);
+
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        JsonParser parser = new JsonParser();
+        result = (JsonObject) parser.parse(sb.toString());
+
+        StringBuilder out = new StringBuilder();
+        out.append("ok : " + result.get("ok") +"\n");
+
+        JsonObject user = (JsonObject) result.get("channel");
+        String ID = user.get("name").toString();
+        String chatName = ID.replaceAll("\"", "");
+
+        System.out.println(chatName);
+        return chatName;
     }
 }
 
