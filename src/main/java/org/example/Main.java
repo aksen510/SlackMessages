@@ -17,7 +17,8 @@ import java.net.URL;
 @Slf4j
 public class Main {
 
-    private static final String Token = "xoxb-1376359396183-4541956097106-IXi4bjYNVz6A8czFOYjPfkD0";
+    //Slack Bot 토큰 값 입력
+    private static final String Token = "xoxb-";
     private static Slack slack = Slack.getInstance();
     private static String userInfo = "C04FHJY8D63";     // 임시 이메일 : "es-kbsys38@hybecorp.com"
     private static String chatID = "C04FHJY8D63";                  // 임시 채널 ID: C04FHJY8D63
@@ -95,6 +96,7 @@ public class Main {
         }
     }
 
+    //이메일을 통해 채널 id 받아오기
     public static String getSlackIdByEmail(String intraId) {
         String url = "https://slack.com/api/users.lookupByEmail";
         url += "?email=" + intraId;
@@ -141,6 +143,7 @@ public class Main {
 
     }
 
+    // 채널명 받아오기 및 채널 유효성검사
     public static String getChannelName() {
         String url = "https://slack.com/api/conversations.info";
         url += "?channel=" + chatID;
